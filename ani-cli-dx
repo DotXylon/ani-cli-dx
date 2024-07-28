@@ -472,7 +472,7 @@ tput sc
 play
 [ "$player_function" = "download" ] || [ "$player_function" = "debug" ] && exit 0
 
-while cmd=$(printf "next\nreplay\nprevious\nselect\nchange_quality\nquit" | nth "Playing episode $ep_no of $title... "); do
+while cmd=$(printf "next\nreplay\nprevious\nselect\nchange_quality\nquit_save_current_episode\ndelete_from_history\nquit" | nth "Playing episode $ep_no of $title... "); do
     case "$cmd" in
         next) ep_no=$(printf "%s" "$ep_list" | sed -n "/^${ep_no}$/{n;p;}") 2>/dev/null ;;
         replay) episode="$replay" ;;
@@ -482,6 +482,15 @@ while cmd=$(printf "next\nreplay\nprevious\nselect\nchange_quality\nquit" | nth 
             episode=$(printf "%s" "$links" | launcher)
             quality=$(printf "%s" "$episode" | grep -oE "^[0-9]+")
             episode=$(printf "%s" "$episode" | cut -d'>' -f2)
+            ;;
+        quit_save_current_episode) 
+            ep_no=$(printf "%s" "$ep_list" | sed -n "/^${ep_no}$/{g;1!p;};h")
+            update_history
+            exit 0
+            ;;
+        delete_from_history)
+            sed -i "/^[^\t]*\t${id}\t/d" "$histfile"
+            printf "\033[1;33mDeleted from history\033[0m\n"
             ;;
         *) exit 0 ;;
     esac
